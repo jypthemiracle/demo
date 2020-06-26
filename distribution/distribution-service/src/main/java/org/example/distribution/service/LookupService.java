@@ -5,6 +5,7 @@ import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
 import org.example.distribution.domain.Distribution;
+import org.example.distribution.exception.LookupException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,7 +14,7 @@ public class LookupService {
 
     private void validateOwnerForLookup(int userKey, String roomKey, Distribution distribution) {
         if (userKey != distribution.getUserKey() || !roomKey.equals(distribution.getRoomKey())) {
-            throw new RuntimeException("Invalid userKey or roomKey. lookup is only allowed to owner");
+            throw new LookupException("Invalid userKey or roomKey. lookup is only allowed to owner");
         }
     }
 
@@ -23,7 +24,7 @@ public class LookupService {
         long expiredTime = DateUtils.addDays(new Date(createdTime), 7).getTime();
 
         if (expiredTime < currentTime) {
-            throw new RuntimeException("Invalid lookup Time. lookup is only 7 days available");
+            throw new LookupException("Invalid lookup Time. lookup is only 7 days available");
         }
     }
 

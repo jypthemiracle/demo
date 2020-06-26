@@ -10,6 +10,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.example.distribution.domain.Distribution;
 import org.example.distribution.domain.Receive;
 import org.example.distribution.domain.ReceiveStatus;
+import org.example.distribution.exception.ReceiveException;
 import org.example.distribution.store.ReceiveStore;
 import org.springframework.stereotype.Service;
 
@@ -26,19 +27,19 @@ public class ReceiveService {
             .collect(Collectors.toList());
 
         if (!receiveList.isEmpty()) {
-            throw new RuntimeException("Invalid userKey. receive is allowed only one time");
+            throw new ReceiveException("Invalid userKey. receive is allowed only one time");
         }
     }
 
     private void validateOwnerForReceive(int userKey, Distribution distribution) {
         if (userKey == distribution.getUserKey()) {
-            throw new RuntimeException("Invalid userKey. receive is not allowed to owner");
+            throw new ReceiveException("Invalid userKey. receive is not allowed to owner");
         }
     }
 
     private void validateRoom(String roomKey, Distribution distribution) {
         if (!roomKey.equals(distribution.getRoomKey())) {
-            throw new RuntimeException("Invalid roomKey. receive is only allowed to same room");
+            throw new ReceiveException("Invalid roomKey. receive is only allowed to same room");
         }
     }
 
@@ -48,7 +49,7 @@ public class ReceiveService {
         long expiredTime = DateUtils.addMinutes(new Date(createdTime), 10).getTime();
 
         if (expiredTime < currentTime) {
-            throw new RuntimeException("Invalid receive Time. receive is only 10 minutes available");
+            throw new ReceiveException("Invalid receive Time. receive is only 10 minutes available");
         }
     }
 
@@ -94,7 +95,7 @@ public class ReceiveService {
     public int receive(int userKey, Distribution distribution) {
         List<Receive> nonReceivedList = findNotReceiveList(distribution.getToken());
         if (nonReceivedList.isEmpty()) {
-            throw new RuntimeException("Distribution's Receive is end.");
+            throw new ReceiveException("Distribution's Receive is end.");
         }
 
         Receive receive = getRandomReceive(nonReceivedList);

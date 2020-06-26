@@ -44,7 +44,6 @@ public class FlowService {
         receiveService.validateReceive(userKey, roomKey, distribution);
 
         return receiveService.receive(userKey, distribution);
-
     }
 
 }
