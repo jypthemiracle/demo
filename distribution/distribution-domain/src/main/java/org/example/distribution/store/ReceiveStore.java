@@ -5,7 +5,7 @@ import java.util.List;
 import org.example.distribution.domain.Receive;
 
 public interface ReceiveStore {
-    List<Receive> findAll(String distributionId);
+    List<Receive> findAllByDistributionId(String distributionId);
 
     void save(Receive receive, String distributionId);
 

@@ -24,13 +24,17 @@ public class FlowService {
     }
 
     public String distribution(int userKey, String roomKey, DistributionCdo distributionCdo) {
-        return distributionService.distribution(userKey, roomKey, distributionCdo);
+        String distributionId = distributionService.distribution(userKey, roomKey, distributionCdo);
+        Distribution distribution = distributionService.findDistribution(distributionId);
+        receiveService.initReceives(distribution);
+
+        return distributionId;
     }
 
     public DistributionRdo lookup(int userKey, String roomKey, String token) {
         Distribution distribution = distributionService.findDistribution(token);
         lookupService.validate(userKey, roomKey, distribution);
-        List<Receive> receiveList = receiveService.findReceiveList(distribution.getToken());
+        List<Receive> receiveList = receiveService.findReceivedList(distribution.getToken());
 
         return enrichment(distribution, receiveList);
     }

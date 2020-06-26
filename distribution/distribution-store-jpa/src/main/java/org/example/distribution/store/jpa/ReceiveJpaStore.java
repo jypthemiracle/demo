@@ -17,8 +17,8 @@ public class ReceiveJpaStore implements ReceiveStore {
     private final ReceiveRepository receiveRepository;
 
     @Override
-    public List<Receive> findAll(String distributionId) {
-        return StreamSupport.stream(receiveRepository.findAll().spliterator(), false)
+    public List<Receive> findAllByDistributionId(String distributionId) {
+        return StreamSupport.stream(receiveRepository.findAllByDistributionId(distributionId).spliterator(), false)
             .map(ReceiveJpo::toDomain)
             .collect(Collectors.toList());
     }

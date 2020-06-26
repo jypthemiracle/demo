@@ -3,11 +3,13 @@ package org.example.distribution.service;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
 import org.example.distribution.domain.Distribution;
 import org.example.distribution.domain.Receive;
+import org.example.distribution.domain.ReceiveStatus;
 import org.example.distribution.store.ReceiveStore;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +20,13 @@ public class ReceiveService {
     private final ReceiveStore receiveStore;
 
     private void validateHasReceived(int userKey, Distribution distribution) {
-        List<Receive> receiveList = findReceiveList(distribution.getToken());
-        for (Receive receive : receiveList) {
-            if (receive.getUserKey() == userKey) {
-                throw new RuntimeException("Invalid userKey. receive is allowed only one time");
-            }
+        List<Receive> receiveList = findAllReceiveList(distribution.getToken())
+            .stream()
+            .filter(receive -> userKey == receive.getUserKey())
+            .collect(Collectors.toList());
+
+        if (!receiveList.isEmpty()) {
+            throw new RuntimeException("Invalid userKey. receive is allowed only one time");
         }
     }
 
@@ -48,17 +52,36 @@ public class ReceiveService {
         }
     }
 
-    private int residualPrice(int totalPrice, List<Receive> receiveList) {
-        int residualPrice = totalPrice;
-        for (Receive receive : receiveList) {
-            residualPrice -= receive.getPrice();
-        }
-
-        return residualPrice;
-    }
-
     private int randomPrice(int totalPrice) {
         return new Random().nextInt(totalPrice);
+    }
+
+    private Receive getRandomReceive(List<Receive> receiveList) {
+        return receiveList.get(new Random().nextInt(receiveList.size()));
+    }
+
+    private List<Receive> findAllReceiveList(String distributionId) {
+        return receiveStore.findAllByDistributionId(distributionId);
+    }
+
+    private List<Receive> findNotReceiveList(String distributionId) {
+        return receiveStore.findAllByDistributionId(distributionId)
+            .stream()
+            .filter(receive -> ReceiveStatus.NOT_RECEIVED.equals(receive.getReceiveStatus()))
+            .collect(Collectors.toList());
+    }
+
+    public void initReceives(Distribution distribution) {
+        int residualPrice = distribution.getPrice();
+        for (int cnt = 0; cnt < distribution.getUsersCount(); cnt++) {
+            int price = residualPrice;
+            if (cnt < distribution.getUsersCount() - 1) {
+                price = randomPrice(residualPrice);
+                residualPrice -= price;
+            }
+
+            receiveStore.save(new Receive(price), distribution.getToken());
+        }
     }
 
     public void validateReceive(int userKey, String roomKey, Distribution distribution) {
@@ -68,18 +91,23 @@ public class ReceiveService {
         validateExpiredDateForReceive(distribution);
     }
 
-    public List<Receive> findReceiveList(String distributionId) {
-        return receiveStore.findAll(distributionId);
-    }
-
     public int receive(int userKey, Distribution distribution) {
-        List<Receive> receiveList = findReceiveList(distribution.getToken());
-        int residualPrice = residualPrice(distribution.getPrice(), receiveList);
-        int receivePrice = randomPrice(residualPrice);
+        List<Receive> nonReceivedList = findNotReceiveList(distribution.getToken());
+        if (nonReceivedList.isEmpty()) {
+            throw new RuntimeException("Distribution's Receive is end.");
+        }
 
-        receiveStore.save(new Receive(receivePrice, userKey), distribution.getToken());
+        Receive receive = getRandomReceive(nonReceivedList);
+        receive.receive(userKey);
+        receiveStore.save(receive, distribution.getToken());
 
-        return receivePrice;
+        return receive.getPrice();
     }
 
+    public List<Receive> findReceivedList(String distributionId) {
+        return receiveStore.findAllByDistributionId(distributionId)
+            .stream()
+            .filter(receive -> ReceiveStatus.RECEIVED.equals(receive.getReceiveStatus()))
+            .collect(Collectors.toList());
+    }
 }

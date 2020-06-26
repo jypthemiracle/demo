@@ -23,18 +23,18 @@ public class DistributionRdo {
     private int receivedPrice;
 
     //받기 완료된 정보 [받은 금액, 받은 사용자 아이디] 리스트
-    private List<Receive> receiveList;
+    private List<Receive> receivedList;
 
     public DistributionRdo(Distribution distribution, List<Receive> receives) {
         createdAt = distribution.getCreatedAt();
         distributionPrice = distribution.getPrice();
         receivedPrice = calculateReceivedPrice(receives);
-        receiveList = receives;
+        receivedList = receives;
     }
 
-    private int calculateReceivedPrice(List<Receive> receiveList) {
+    private int calculateReceivedPrice(List<Receive> receives) {
         int price = 0;
-        for (Receive receive : receiveList) {
+        for (Receive receive : receives) {
             price += receive.getPrice();
         }
 

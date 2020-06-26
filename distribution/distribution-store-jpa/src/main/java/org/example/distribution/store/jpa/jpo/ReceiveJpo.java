@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.distribution.domain.Receive;
+import org.example.distribution.domain.ReceiveStatus;
 
 @Entity
 @Table(name = "receive")
@@ -27,19 +28,25 @@ public class ReceiveJpo {
     //받은 User
     private int userKey;
 
+    //상태
+    private ReceiveStatus receiveStatus;
+
     public ReceiveJpo(Receive receive, String token) {
         this(
-            new ReceiveJpoId().newReceiveKey(),
+            new ReceiveJpoId(receive.getReceiveId()),
             token,
             receive.getPrice(),
-            receive.getUserKey()
+            receive.getUserKey(),
+            receive.getReceiveStatus()
         );
     }
 
     public Receive toDomain() {
         return new Receive(
+            getReceiveJpoId().getReceiveId(),
             getPrice(),
-            getUserKey()
+            getUserKey(),
+            getReceiveStatus()
         );
     }
 
