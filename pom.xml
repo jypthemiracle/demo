@@ -12,6 +12,7 @@
     <modules>
         <module>boot</module>
         <module>distribution</module>
+        <module>test</module>
     </modules>
 
     <properties>
