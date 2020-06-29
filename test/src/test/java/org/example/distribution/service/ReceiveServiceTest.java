@@ -7,7 +7,6 @@ import org.example.DemoApplication;
 import org.example.distribution.domain.Distribution;
 import org.example.distribution.exception.ReceiveException;
 import org.example.distribution.sdo.DistributionCdo;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -52,7 +51,7 @@ public class ReceiveServiceTest {
     @Test(expected = ReceiveException.class)
     public void test1_validate_has_received() {
         //실패 Case - 이미 받은 사용자
-        receiveService.validateReceive(validUser1, roomKey, distribution);
+        receiveService.receive(validUser1, distribution);
         receiveService.validateReceive(validUser1, roomKey, distribution);
     }
 
@@ -85,15 +84,8 @@ public class ReceiveServiceTest {
         receiveService.validateReceive(validUser1, roomKey, invalidDistribution);
     }
 
-    @Test
-    public void test5_receive() {
-        //정상 Case
-        int result = receiveService.receive(validUser1, distribution);
-        Assert.assertTrue(result > -1);
-    }
-
     @Test(expected = ReceiveException.class)
-    public void test6_receive_ended() {
+    public void test5_receive_ended() {
         //실패 Case - 뿌리기 건의 모든 받기 완료
         receiveService.receive(validUser1, distribution);
         receiveService.receive(validUser2, distribution);
